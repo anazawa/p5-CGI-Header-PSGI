@@ -90,6 +90,10 @@ CGI::Header::PSGI - Role for generating PSGI response headers
 
   sub crlf { $CGI::CRLF }
 
+=head1 VERSION
+
+This document refers to CGI::Header::PSGI 0.01.
+
 =head1 DESCRIPTION
 
 This module is a role to generate PSGI response headers.

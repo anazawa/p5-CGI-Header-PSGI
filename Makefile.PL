@@ -2,7 +2,7 @@ use inc::Module::Install;
 
 all_from 'lib/CGI/Header/PSGI.pm';
 
-repository 'https://github.com/anazawa/p5-CGI-Header';
+repository 'https://github.com/anazawa/p5-CGI-Header-PSGI';
 
 requires 'Carp' => '1.10';
 requires 'Role::Tiny';

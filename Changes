@@ -2,4 +2,36 @@ Revision history for Perl extension CGI::Header::PSGI.
 
 0.01  Feb 26th, 2013
 
-  - 
+  Initial release of CGI-Header-PSGI as a separate distribution.
+  The CGI::Header::PSGI module used to be bundled with the
+  CGI-Header distribution.
+
+  [INCOMPATIBLE CHANGES]
+
+    Requires Role::Tiny. A role CGI::Header::PSGI requires
+    the following methods:
+
+      - charset
+      - cache
+      - no_cache (optional)
+      - self_url
+      - crlf
+
+    charset(), cache() and self_url() are provided by both of
+    CGI.pm and CGI::Simple. crlf() is provided by CGI::Simple.
+    If your query class inherits from CGI.pm, you have to implement
+    your crlf() method by yourself.
+
+    Using CGI.pm:
+
+      use parent 'CGI';
+      use Role::Tiny::With;
+      with 'CGI::Header::PSGI';
+
+      sub crlf { $CGI::CRLF }
+
+    Using CGI::Simple:
+
+      use parent 'CGI::Simple';
+      use Role::Tiny::With;
+      with 'CGI::Header::PSGI';
