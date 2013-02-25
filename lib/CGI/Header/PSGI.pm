@@ -132,6 +132,8 @@ Works like CGI.pm's C<header()>, but the return format is modified.
 It returns an array with the status code and arrayref of header pairs
 that PSGI requires.
 
+Unlike C<header()>, this method doesn't update C<charset()>.
+
 =item ($status_code, $headers_aref) = $query->psgi_redirect( %args )
 
 Works like CGI.pm's C<redirect()>, but the return format is modified.
