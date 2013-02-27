@@ -16,4 +16,5 @@ README
 t/00_compile.t
 t/10_psgi_header.t
 t/11_psgi_redirect.t
+tools/benchmark.pl
 xt/pod.t

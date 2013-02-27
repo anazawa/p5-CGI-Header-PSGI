@@ -1,5 +1,7 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
+0.02  Feb 27th, 2013
+
   - Fix t/11_psgi_redirect.t (thanks to CPAN testers)
   - Tests require CGI-PSGI 0.15
   - CGI::Header::PSGI requires Perl 5.8.9 or higher
