@@ -11,7 +11,8 @@ plan tests => 6;
 
 package CGI::PSGI::Extended;
 use base 'CGI::PSGI';
-use CGI::Header::PSGI qw( psgi_header psgi_redirect );
+use Role::Tiny::With;
+with 'CGI::Header::PSGI';
 
 sub crlf { $CGI::CRLF }
 

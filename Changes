@@ -1,5 +1,8 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
+  - Fix t/11_psgi_redirect.t (thanks to CPAN testers)
+  - Tests require CGI-PSGI 0.15
+
 0.01  Feb 26th, 2013
 
   Initial release of CGI-Header-PSGI as a separate distribution.
