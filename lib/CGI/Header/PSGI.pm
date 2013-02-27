@@ -4,9 +4,9 @@ use CGI::Header;
 use Carp qw/croak/;
 use Role::Tiny;
 
-requires qw( cache charset crlf self_url );
-
 our $VERSION = '0.01';
+
+requires qw( cache charset crlf self_url );
 
 sub psgi_header {
     my $self     = shift;
