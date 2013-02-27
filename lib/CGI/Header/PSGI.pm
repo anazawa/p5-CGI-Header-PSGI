@@ -1,4 +1,5 @@
 package CGI::Header::PSGI;
+use 5.008_009;
 use CGI::Header;
 use Carp qw/croak/;
 use Role::Tiny;
