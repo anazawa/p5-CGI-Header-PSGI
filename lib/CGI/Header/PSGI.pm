@@ -1,6 +1,4 @@
 package CGI::Header::PSGI;
-use strict;
-use warnings;
 use CGI::Header;
 use Carp qw/croak/;
 use Role::Tiny;
