@@ -1,5 +1,7 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
+0.03  Mar 4th, 2013
+
   - CGI::Header::PSGI requires CGI::Header 0.30 or higher
 
 0.02  Feb 27th, 2013

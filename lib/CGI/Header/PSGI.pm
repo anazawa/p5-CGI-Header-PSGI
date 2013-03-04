@@ -4,7 +4,7 @@ use CGI::Header;
 use Carp qw/croak/;
 use Role::Tiny;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 requires qw( cache charset crlf self_url );
 
