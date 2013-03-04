@@ -9,10 +9,9 @@ our $VERSION = '0.03';
 requires qw( cache charset crlf self_url );
 
 sub psgi_header {
-    my $self     = shift;
-    my @args     = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
-    my $crlf     = $self->crlf;
-    my $no_cache = $self->can('no_cache') && $self->no_cache;
+    my $self = shift;
+    my @args = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
+    my $crlf = $self->crlf;
 
     unshift @args, '-type' if @args == 1;
 
@@ -21,11 +20,9 @@ sub psgi_header {
         @args,
     );
 
-    $header->nph( 0 );
-    $header->expires( 'now' ) if $no_cache and !$header->exists('Expires');
-
-    if ( $no_cache and !$header->exists('Pragma') ) {
-        $header->set( 'Pragma' => 'no-cache' );
+    if ( $self->can('no_cache') and $self->no_cache ) {
+        $header->expires('now') if !$header->exists('Expires');
+        $header->set( 'Pragma' => 'no-cache' ) if !$header->exists('Pragma');
     }
 
     my $status = $header->delete('Status') || '200';
