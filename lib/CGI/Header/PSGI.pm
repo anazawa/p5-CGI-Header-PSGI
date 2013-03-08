@@ -1,6 +1,7 @@
 package CGI::Header::PSGI;
 use 5.008_009;
 use CGI::Header;
+use CGI::Header::Redirect;
 use Carp qw/croak/;
 use Role::Tiny;
 
@@ -11,17 +12,26 @@ requires qw( cache charset crlf self_url );
 sub psgi_header {
     my $self = shift;
     my @args = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
-    my $crlf = $self->crlf;
-
     unshift @args, '-type' if @args == 1;
+    return $self->_psgi_header( 'CGI::Header', @args );
+}
 
-    my $header = CGI::Header->new(
-        -query => $self,
-        @args,
-    );
+sub psgi_redirect {
+    my $self = shift;
+    my @args = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
+    unshift @args, '-location' if @args == 1;
+    return $self->_psgi_header( 'CGI::Header::Redirect', @args );
+}
 
+sub _psgi_header {
+    my $self    = shift;
+    my $handler = shift;
+    my $header  = $handler->new( -query => $self, @_ );
+    my $crlf    = $self->crlf;
+
+    # for CGI::Simple
     if ( $self->can('no_cache') and $self->no_cache ) {
-        $header->expires('now') if !$header->exists('Expires');
+        $header->expires( 'now' ) if !$header->exists('Expires');
         $header->set( 'Pragma' => 'no-cache' ) if !$header->exists('Pragma');
     }
 
@@ -55,20 +65,6 @@ sub psgi_header {
     return $status, \@headers;
 }
 
-sub psgi_redirect {
-    my $self = shift;
-    my @args = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
-
-    unshift @args, '-location' if @args == 1;
-
-    return $self->psgi_header(
-        -location => $self->self_url,
-        -status => '302',
-        -type => q{},
-        @args,
-    );
-}
-
 1;
 
 __END__
@@ -90,7 +86,7 @@ CGI::Header::PSGI - Role for generating PSGI response headers
 
 =head1 VERSION
 
-This document refers to CGI::Header::PSGI 0.03.
+This document refers to CGI::Header::PSGI 0.04.
 
 =head1 DESCRIPTION
 
