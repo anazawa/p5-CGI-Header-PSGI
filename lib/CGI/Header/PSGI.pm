@@ -12,22 +12,36 @@ requires qw( cache charset crlf self_url );
 sub psgi_header {
     my $self = shift;
     my @args = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
+
     unshift @args, '-type' if @args == 1;
-    return $self->_psgi_header( 'CGI::Header', @args );
+
+    return $self->_psgi_header(
+        header_props => \@args,
+        handler => 'CGI::Header',
+    );
 }
 
 sub psgi_redirect {
     my $self = shift;
     my @args = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
+
     unshift @args, '-location' if @args == 1;
-    return $self->_psgi_header( 'CGI::Header::Redirect', @args );
+
+    return $self->_psgi_header(
+        header_props => \@args,
+        handler => 'CGI::Header::Redirect',
+    );
 }
 
 sub _psgi_header {
-    my $self    = shift;
-    my $handler = shift;
-    my $header  = $handler->new( -query => $self, @_ );
-    my $crlf    = $self->crlf;
+    my $self = shift;
+    my %args = @_;
+    my $crlf = $self->crlf;
+
+    my $header = $args{handler}->new(
+        @{ $args{header_props} },
+        -query => $self,
+    );
 
     # for CGI::Simple
     if ( $self->can('no_cache') and $self->no_cache ) {
