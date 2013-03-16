@@ -5,7 +5,7 @@ use CGI::Header::Redirect;
 use Carp qw/croak/;
 use Role::Tiny;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 requires qw( cache charset crlf nph self_url server_software );
 
