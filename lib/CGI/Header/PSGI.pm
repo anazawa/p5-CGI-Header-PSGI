@@ -107,7 +107,7 @@ This document refers to CGI::Header::PSGI 0.05.
 This module is a L<Role::Tiny> role to generate PSGI response headers
 array reference.
 
-This module doesn't case if your query class is orthogonal to
+This module doesn't care if your query class is orthogonal to
 a global variable C<%ENV>. For example, C<CGI::PSGI> adds the C<env()>
 attribute to CGI.pm, and also overrides some methods which refer to C<%ENV>
 directly. This module doesn't solve these problems at all.
@@ -148,7 +148,7 @@ Implemented by both of L<CGI> and L<CGI::Simple>.
 =item $query->crlf
 
 Returns the system specific line ending sequence.
-Implemented by both of L<CGI> and L<CGI::Simple>.
+Implemented by L<CGI::Simple>.
 
 =back
 
