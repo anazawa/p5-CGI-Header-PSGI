@@ -1,5 +1,9 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
+  - A role CGI::Header::PSGI requires the nph() and server_software() methods
+    which are provided by both of CGI.pm and CGI::Simple.
+  - Update POD
+
 0.04  Mar 9th, 2013
 
   - CGI::Header::PSGI requires CGI::Header 0.32 or higher

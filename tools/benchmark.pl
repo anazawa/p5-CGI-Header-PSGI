@@ -1,16 +1,21 @@
 use strict;
 use warnings;
+use feature qw/say/;
 use Benchmark qw/cmpthese/;
 use CGI::Cookie;
 use CGI::PSGI;
-use Data::Dumper;
 
 package CGI::PSGI::Extended;
 use Moo;
-extends 'CGI::PSGI';
+extends 'CGI';
 with 'CGI::Header::PSGI';
 
 sub crlf { $CGI::CRLF }
+
+package CGI::Simple::PSGI;
+use Moo;
+extends 'CGI::Simple';
+with 'CGI::Header::PSGI';
 
 package main;
 
@@ -29,7 +34,7 @@ my @args = (
     -p3p           => [qw/CAO DSP LAW CURa/],
 );
 
-my $env = \%ENV;
+my $env = {};
 
 cmpthese(-1, {
     'CGI::PSGI' => sub {
@@ -37,7 +42,26 @@ cmpthese(-1, {
         my ( $status, $headers ) = $cgi->psgi_header( @args );
     },
     'CGI::Header::PSGI' => sub {
-        my $cgi = CGI::PSGI::Extended->new( $env );
+        my $cgi = CGI::PSGI::Extended->new;
         my ( $status, $headers ) = $cgi->psgi_header( @args );
+    },
+    'CGI::Simple::PSGI' => sub {
+        my $cgi = CGI::Simple::PSGI->new;
+        my ( $status, $headers ) = $cgi->psgi_header( @args );
+    },
+});
+
+cmpthese(-1, {
+    'CGI::PSGI' => sub {
+        my $cgi = CGI::PSGI->new( $env );
+        my ( $status, $headers ) = $cgi->psgi_redirect( @args );
+    },
+    'CGI::Header::PSGI' => sub {
+        my $cgi = CGI::PSGI::Extended->new;
+        my ( $status, $headers ) = $cgi->psgi_redirect( @args );
+    },
+    'CGI::Simple::PSGI' => sub {
+        my $cgi = CGI::Simple::PSGI->new;
+        my ( $status, $headers ) = $cgi->psgi_redirect( @args );
     },
 });

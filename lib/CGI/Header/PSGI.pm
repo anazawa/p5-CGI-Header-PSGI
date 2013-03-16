@@ -7,7 +7,7 @@ use Role::Tiny;
 
 our $VERSION = '0.04';
 
-requires qw( cache charset crlf self_url );
+requires qw( cache charset crlf nph self_url server_software );
 
 sub psgi_header {
     my $self = shift;
@@ -100,37 +100,61 @@ CGI::Header::PSGI - Role for generating PSGI response headers
 
 =head1 VERSION
 
-This document refers to CGI::Header::PSGI 0.04.
+This document refers to CGI::Header::PSGI 0.05.
 
 =head1 DESCRIPTION
 
-This module is a role to generate PSGI response headers.
+This module is a L<Role::Tiny> role to generate PSGI response headers
+array reference.
+
+This module doesn't case if your query class is orthogonal to
+a global variable C<%ENV>. For example, C<CGI::PSGI> adds the C<env()>
+attribute to CGI.pm, and also overrides some methods which refer to C<%ENV>
+directly. This module doesn't solve these problems at all.
 
 =head2 REQUIRED METHODS
 
-Your class has to implement the following methods.
+Your query class has to implement the following methods:
 
 =over 4
 
 =item $query->charset
 
 Returns the character set sent to the browser.
+Implemented by both of L<CGI> and L<CGI::Simple>.
 
 =item $query->self_url
 
+Returns the complete URL of your script.
+Implemented by both of L<CGI> and L<CGI::Simple>.
+
 =item $query->cache
 
+Implemented by both of L<CGI> and L<CGI::Simple>.
+
 =item $query->no_cache (optional)
+
+Implemented by L<CGI::Simple>.
+
+=item $query->nph
+
+Implemented by both of L<CGI> and L<CGI::Simple>.
+
+=item $query->server_software
+
+Returns the server software and version number.
+Implemented by both of L<CGI> and L<CGI::Simple>.
 
 =item $query->crlf
 
 Returns the system specific line ending sequence.
+Implemented by both of L<CGI> and L<CGI::Simple>.
 
 =back
 
 =head2 METHODS
 
-By using this module, your class is capable of following methods.
+By composing this role, your class is capable of following methods.
 
 =over 4
 
@@ -147,6 +171,8 @@ Unlike C<header()>, this method doesn't update C<charset()>.
 Works like CGI.pm's C<redirect()>, but the return format is modified.
 It returns an array with the status code and arrayref of header pairs
 that PSGI requires.
+
+Unlike C<redirect()>, this method doesn't update C<charset()>.
 
 =back
 
