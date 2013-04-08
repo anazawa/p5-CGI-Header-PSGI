@@ -44,19 +44,19 @@ my $q = CGI::PSGI::Extended->new($env);
     my $test = 'psgi_redirect() with content type';
     my ($status,$headers) = $q->psgi_redirect( -Location=>'http://somewhere.else',-Type=>'text/html');
     is($status, 302, "$test - status");
-    is_deeply $headers, [ 
+    is_deeply {@$headers}, {
         'Location' => 'http://somewhere.else',
         'Content-Type' => 'text/html; charset=ISO-8859-1',
-        ], "$test - headers array";  
+        }, "$test - headers array";  
 }
 {
     my $test = "psgi_redirect() with path and query string"; 
     my ($status,$headers) = $q->psgi_redirect( -Location=>'http://somewhere.else/bin/foo&bar',-Type=>'text/html');
     is($status, 302, "$test - status");
-    is_deeply $headers, [ 
+    is_deeply {@$headers}, {
         'Location' => 'http://somewhere.else/bin/foo&bar',
         'Content-Type' => 'text/html; charset=ISO-8859-1',
-        ], "$test - headers array";  
+        }, "$test - headers array";  
 }
 
 

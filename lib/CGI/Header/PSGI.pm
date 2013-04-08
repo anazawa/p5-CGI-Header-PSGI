@@ -1,7 +1,6 @@
 package CGI::Header::PSGI;
 use 5.008_009;
 use CGI::Header;
-use CGI::Header::Redirect;
 use Carp qw/croak/;
 use Role::Tiny;
 
@@ -13,11 +12,11 @@ sub psgi_header {
     my $self = shift;
     my @args = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
 
-    unshift @args, '-type' if @args == 1;
+    unshift @args, 'type' if @args == 1;
 
     return $self->_psgi_header(
-        header_props => \@args,
-        handler => 'CGI::Header',
+        header  => { @args },
+        handler => 'header',
     );
 }
 
@@ -25,58 +24,54 @@ sub psgi_redirect {
     my $self = shift;
     my @args = ref $_[0] eq 'HASH' ? %{ $_[0] } : @_;
 
-    unshift @args, '-location' if @args == 1;
+    unshift @args, 'location' if @args == 1;
 
     return $self->_psgi_header(
-        header_props => \@args,
-        handler => 'CGI::Header::Redirect',
+        header  => { @args },
+        handler => 'redirect',
     );
 }
 
 sub _psgi_header {
-    my $self = shift;
-    my %args = @_;
-    my $crlf = $self->crlf;
+    my $self   = shift;
+    my $header = CGI::Header->new( query => $self, @_ )->rehash->as_hashref;
+    my $crlf   = $self->crlf;
 
-    my $header = $args{handler}->new(
-        @{ $args{header_props} },
-        -query => $self,
-    );
+    my @headers;
 
-    # for CGI::Simple
-    if ( $self->can('no_cache') and $self->no_cache ) {
-        $header->expires( 'now' ) if !$header->exists('Expires');
-        $header->set( 'Pragma' => 'no-cache' ) if !$header->exists('Pragma');
-    }
-
-    my $status = $header->delete('Status') || '200';
+    my $status = delete $header->{'Status'} || '200';
        $status =~ s/\D*$//;
 
     # See Plack::Util::status_with_no_entity_body()
     if ( $status < 200 or $status == 204 or $status == 304 ) {
-        $header->delete( $_ ) for qw( Content-Type Content-Length );
+        delete @{$header}{qw/Content-Type Content-length/};
     }
 
-    my @headers;
-    $header->each(sub {
-        my ( $field, $value ) = @_;
+    if ( my $cookies = delete $header->{'Set-Cookie'} ) {
+        push @headers, map { ('Set-Cookie', _value($_, $crlf)) } @{$cookies};
+    }
 
-        # From RFC 822:
-        # Unfolding is accomplished by regarding CRLF immediately
-        # followed by a LWSP-char as equivalent to the LWSP-char.
-        $value =~ s/$crlf(\s)/$1/g;
-
-        # All other uses of newlines are invalid input.
-        if ( $value =~ /$crlf|\015|\012/ ) {
-            # shorten very long values in the diagnostic
-            $value = substr($value, 0, 72) . '...' if length $value > 72;
-            croak "Invalid header value contains a newline not followed by whitespace: $value";
-        }
-
-        push @headers, $field, $value;
-    });
+    push @headers, map { $_, _value($header->{$_}, $crlf) } keys %{$header};
 
     return $status, \@headers;
+}
+
+sub _value {
+    my ( $value, $crlf ) = @_;
+
+    # From RFC 822:
+    # Unfolding is accomplished by regarding CRLF immediately
+    # followed by a LWSP-char as equivalent to the LWSP-char.
+    $value =~ s/$crlf(\s)/$1/g;
+
+    # All other uses of newlines are invalid input.
+    if ( $value =~ /$crlf|\015|\012/ ) {
+        # shorten very long values in the diagnostic
+        $value = substr($value, 0, 72) . '...' if length $value > 72;
+        croak "Invalid header value contains a newline not followed by whitespace: $value";
+    }
+
+    return $value;
 }
 
 1;
