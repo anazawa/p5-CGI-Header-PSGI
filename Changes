@@ -1,5 +1,7 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
+  - Rewrite entirely
+
 0.05  Mar 17th, 2013
 
   - A role CGI::Header::PSGI requires the nph() and server_software() methods

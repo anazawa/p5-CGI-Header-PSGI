@@ -3,20 +3,13 @@
 use strict;
 use warnings;
 use Test::More;
+use CGI::PSGI;
+use CGI::Header::PSGI;
 
 eval "use 5.008";
 plan skip_all => "$@" if $@;
 plan tests => 6;
 #plan 'no_plan';
-
-package CGI::PSGI::Extended;
-use base 'CGI::PSGI';
-use Role::Tiny::With;
-with 'CGI::Header::PSGI';
-
-sub crlf { $CGI::CRLF }
-
-package main;
 
 # Set up a CGI environment
 my $env;
@@ -31,32 +24,36 @@ $env->{SERVER_NAME}     = 'the.good.ship.lollypop.com';
 $env->{REQUEST_URI}     = "$env->{SCRIPT_NAME}$env->{PATH_INFO}?$env->{QUERY_STRING}";
 $env->{HTTP_LOVE}       = 'true';
 
-my $q = CGI::PSGI::Extended->new($env);
+my $header = CGI::Header::PSGI->new(
+    handler => 'redirect',
+    query => CGI::PSGI->new($env),
+);
+
 
 # These first tree tests are ported from CGI.pm's 'function.t'
 {
     my $test = 'psgi_redirect($url)';
-    my ($status,$headers) = $q->psgi_redirect('http://somewhere.else');
-    is($status, 302, "$test - default status");
-    is_deeply $headers, [ 'Location' => 'http://somewhere.else' ], "$test - headers array";  
+    $header->clear->location('http://somewhere.else');
+    is($header->status_code, 302, "$test - default status");
+    is_deeply $header->as_arrayref, [ 'Location' => 'http://somewhere.else' ], "$test - headers array";  
 }
 {
     my $test = 'psgi_redirect() with content type';
-    my ($status,$headers) = $q->psgi_redirect( -Location=>'http://somewhere.else',-Type=>'text/html');
-    is($status, 302, "$test - status");
-    is_deeply {@$headers}, {
+    $header->clear->location('http://somewhere.else')->type('text/html');
+    is($header->status_code, 302, "$test - status");
+    is_deeply $header->as_arrayref, [
         'Location' => 'http://somewhere.else',
         'Content-Type' => 'text/html; charset=ISO-8859-1',
-        }, "$test - headers array";  
+    ], "$test - headers array";  
 }
 {
     my $test = "psgi_redirect() with path and query string"; 
-    my ($status,$headers) = $q->psgi_redirect( -Location=>'http://somewhere.else/bin/foo&bar',-Type=>'text/html');
-    is($status, 302, "$test - status");
-    is_deeply {@$headers}, {
+    $header->clear->location('http://somewhere.else/bin/foo&bar')->type('text/html');
+    is($header->status_code, 302, "$test - status");
+    is_deeply $header->as_arrayref, [
         'Location' => 'http://somewhere.else/bin/foo&bar',
         'Content-Type' => 'text/html; charset=ISO-8859-1',
-        }, "$test - headers array";  
+    ], "$test - headers array";  
 }
 
 

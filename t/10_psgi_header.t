@@ -9,15 +9,8 @@ use strict;
 use warnings;
 
 use Test::More 'no_plan';
-
-package CGI::PSGI::Extended;
-use base 'CGI::PSGI';
-use Role::Tiny::With;
-with 'CGI::Header::PSGI';
-
-sub crlf { $CGI::CRLF }
-
-package main;
+use CGI::PSGI;
+use CGI::Header::PSGI;
 
 # Set up a CGI environment
 my $env;
@@ -32,31 +25,39 @@ $env->{SERVER_NAME}     = 'the.good.ship.lollypop.com';
 $env->{REQUEST_URI}     = "$env->{SCRIPT_NAME}$env->{PATH_INFO}?$env->{QUERY_STRING}";
 $env->{HTTP_LOVE}       = 'true';
 
-my $cgi = CGI::PSGI::Extended->new($env);
+my $header = CGI::Header::PSGI->new( query => CGI::PSGI->new($env) );
 
-my ($status, $headers) = $cgi->psgi_header( -type => "text/html" );
+my $headers = $header->type('text/html')->as_arrayref;
+is $header->status_code, 200;
 is_deeply $headers, [ 'Content-Type' => 'text/html; charset=ISO-8859-1' ],
     'known header, basic case: type => "text/html"';
 
-eval { $cgi->psgi_header( -type => "text/html".$CGI::CRLF."evil: stuff" ) };
+$header->clear;
+eval { $header->type("text/html".$CGI::CRLF."evil: stuff")->as_arrayref };
 like($@,qr/contains a newline/,'invalid header blows up');
 
-($status, $headers) = $cgi->psgi_header( -type => "text/html".$CGI::CRLF." evil: stuff " );
+$header->clear;
+$headers = $header->type("text/html".$CGI::CRLF." evil: stuff ")->as_arrayref;
 like $headers->[1],
     qr#text/html evil: stuff#, 'known header, with leading and trailing whitespace on the continuation line';
 
-eval {  $cgi->psgi_header( -foobar => "text/html".$CGI::CRLF."evil: stuff" ) };
+$header->clear->set( foobar => "text/html".$CGI::CRLF."evil: stuff" );
+eval {  $header->as_arrayref };
 like($@,qr/contains a newline/,'unknown header with CRLF embedded blows up');
 
-eval { $cgi->psgi_header( -foobar => "\nContent-type: evil/header" ) };
+$header->clear->set( foobar => "\nContent-type: evil/header" );
+eval { $header->as_arrayref };
 like($@,qr/contains a newline/,'header with leading newline blows up');
 
-eval { $cgi->psgi_redirect( -type => "text/html".$CGI::CRLF."evil: stuff" ), };
+$header->clear->type("text/html".$CGI::CRLF."evil: stuff");
+eval { $header->handler('redirect')->as_arrayref };
 like($@,qr/contains a newline/,'redirect with known header with CRLF embedded blows up');
 
-eval { $cgi->psgi_redirect( -foobar => "text/html".$CGI::CRLF."evil: stuff" ) };
+$header->clear->set( foobar => "text/html".$CGI::CRLF."evil: stuff" );
+eval { $header->handler('redirect')->as_arrayref };
 like($@,qr/contains a newline/,'redirect with unknown header with CRLF embedded blows up');
 
-eval { $cgi->psgi_redirect( $CGI::CRLF.$CGI::CRLF."Content-Type: text/html") };
+$header->clear->location($CGI::CRLF.$CGI::CRLF."Content-Type: text/html");
+eval { $header->handler('redirect')->as_arrayref };
 like($@,qr/contains a newline/,'redirect with leading newlines blows up');
 
