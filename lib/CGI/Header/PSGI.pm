@@ -2,10 +2,10 @@ package CGI::Header::PSGI;
 use 5.008_009;
 use strict;
 use warnings;
-use base 'CGI::Header';
+use parent 'CGI::Header';
 use Carp qw/croak/;
 
-our $VERSION = '0.06';
+our $VERSION = '0.10';
 
 sub new {
     my $class  = shift;
@@ -71,6 +71,8 @@ sub _as_arrayref {
     my %header = %{ $self->header };
     my $nph    = delete $header{nph} || $query->nph;
 
+    my @headers;
+
     if ( $self->handler eq 'redirect' ) {
         $header{location} = $query->self_url if !$header{location};
         $header{type} = q{} if !exists $header{type};
@@ -78,8 +80,6 @@ sub _as_arrayref {
 
     my ( $attachment, $charset, $cookie, $expires, $p3p, $target, $type )
         = delete @header{qw/attachment charset cookie expires p3p target type/};
-
-    my @headers;
 
     push @headers, 'Server', $query->server_software if $nph;
     push @headers, 'Window-Target', $target if $target;
@@ -142,7 +142,7 @@ CGI::Header::PSGI - Generate PSGI-compatible response header arrayref
       my $query  = CGI::PSGI->new( $env );
       my $header = CGI::Header::PSGI->new( query => $query );
         
-      # do something with $query and $header
+      # run CGI.pm-based application
 
       return [
           $header->status_code,
