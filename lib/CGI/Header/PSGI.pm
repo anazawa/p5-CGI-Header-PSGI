@@ -37,8 +37,36 @@ sub status_code {
 }
 
 sub as_arrayref {
+    my $self    = shift;
+    my $headers = $self->_as_arrayref;
+    my $crlf    = $self->_crlf;
+
+    my @headers;
+    while ( my ($field, $value) = splice @$headers, 0, 2 ) {
+        # From RFC 822:
+        # Unfolding is accomplished by regarding CRLF immediately
+        # followed by a LWSP-char as equivalent to the LWSP-char.
+        $value =~ s/$crlf(\s)/$1/g;
+
+        # All other uses of newlines are invalid input.
+        if ( $value =~ /$crlf|\015|\012/ ) {
+            # shorten very long values in the diagnostic
+            $value = substr($value, 0, 72) . '...' if length $value > 72;
+            croak "Invalid header value contains a newline not followed by whitespace: $value";
+        }
+
+        push @headers, $field, $value;
+    }
+
+    \@headers;
+}
+
+sub _crlf {
+    $CGI::CRLF;
+}
+
+sub _as_arrayref {
     my $self   = shift;
-    my $crlf   = $self->_crlf;
     my $query  = $self->query;
     my %header = %{ $self->header };
     my $nph    = delete $header{nph} || $query->nph;
@@ -83,28 +111,7 @@ sub as_arrayref {
         push @headers, 'Content-Type', $ct;
     }
 
-    my @array;
-    while ( my ($field, $value) = splice @headers, 0, 2 ) {
-        # From RFC 822:
-        # Unfolding is accomplished by regarding CRLF immediately
-        # followed by a LWSP-char as equivalent to the LWSP-char.
-        $value =~ s/$crlf(\s)/$1/g;
-
-        # All other uses of newlines are invalid input.
-        if ( $value =~ /$crlf|\015|\012/ ) {
-            # shorten very long values in the diagnostic
-            $value = substr($value, 0, 72) . '...' if length $value > 72;
-            croak "Invalid header value contains a newline not followed by whitespace: $value";
-        }
-
-        push @array, $field, $value;
-    }
-
-    \@array;
-}
-
-sub _crlf {
-    $CGI::CRLF;
+    \@headers;
 }
 
 sub _bake_cookie {
@@ -135,7 +142,7 @@ CGI::Header::PSGI - Generate PSGI-compatible response header arrayref
       my $query  = CGI::PSGI->new( $env );
       my $header = CGI::Header::PSGI->new( query => $query );
         
-      # do something
+      # do something with $query and $header
 
       return [
           $header->status_code,
@@ -153,16 +160,14 @@ This document refers to CGI::Header::PSGI 0.10.
 This module can be used to convert CGI.pm-compatible HTTP header properties
 into PSGI response header array reference. 
 
-This module doesn't care if your query class is orthogonal to
-a global variable C<%ENV>. For example, C<CGI::PSGI> adds the C<env>
+This module requires your query class is orthogonal to a global variable
+C<%ENV>. For example, C<CGI::PSGI> adds the C<env>
 attribute to CGI.pm, and also overrides some methods which refer to C<%ENV>
 directly. This module doesn't solve those problems at all.
-In other words, this module requires your query class is orthogonal to
-C<%ENV>.
 
 =head2 METHODS
 
-This class adds the following methods to C<CGI::Header>.
+This class adds the following methods to L<CGI::Header>:
 
 =over 4
 

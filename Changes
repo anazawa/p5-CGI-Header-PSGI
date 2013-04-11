@@ -1,6 +1,7 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
   - Rewrite entirely
+  - Requires CGI::Header 0.45 or higher
 
 0.05  Mar 17th, 2013
 
