@@ -48,16 +48,3 @@ like($@,qr/contains a newline/,'unknown header with CRLF embedded blows up');
 $header->clear->set( foobar => "\nContent-type: evil/header" );
 eval { $header->as_arrayref };
 like($@,qr/contains a newline/,'header with leading newline blows up');
-
-$header->clear->type("text/html".$CGI::CRLF."evil: stuff");
-eval { $header->handler('redirect')->as_arrayref };
-like($@,qr/contains a newline/,'redirect with known header with CRLF embedded blows up');
-
-$header->clear->set( foobar => "text/html".$CGI::CRLF."evil: stuff" );
-eval { $header->handler('redirect')->as_arrayref };
-like($@,qr/contains a newline/,'redirect with unknown header with CRLF embedded blows up');
-
-$header->clear->location($CGI::CRLF.$CGI::CRLF."Content-Type: text/html");
-eval { $header->handler('redirect')->as_arrayref };
-like($@,qr/contains a newline/,'redirect with leading newlines blows up');
-

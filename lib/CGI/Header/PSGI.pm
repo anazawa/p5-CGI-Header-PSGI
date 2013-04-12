@@ -9,8 +9,8 @@ our $VERSION = '0.10';
 
 sub new {
     my $class  = shift;
-    my $self   = $class->SUPER::new( @_ )->rehash;
-    my $header = $self->header;
+    my $self   = $class->SUPER::new( @_ );
+    my $header = $self->rehash->header;
 
     if ( exists $header->{status} ) {
         my $status = delete $header->{status};
@@ -29,9 +29,7 @@ sub status {
 
 sub status_code {
     my $self = shift;
-    my $code = $self->{status};
-    $code = '302' if $self->handler eq 'redirect' and !defined $code;
-    $code = '200' if !$code;
+    my $code = $self->{status} || '200';
     $code =~ s/\D*$//;
     $code;
 }
@@ -42,6 +40,8 @@ sub as_arrayref {
     my $crlf    = $self->_crlf;
 
     my @headers;
+
+    # CR escaping for values, per RFC 822
     while ( my ($field, $value) = splice @$headers, 0, 2 ) {
         # From RFC 822:
         # Unfolding is accomplished by regarding CRLF immediately
@@ -73,11 +73,6 @@ sub _as_arrayref {
 
     my @headers;
 
-    if ( $self->handler eq 'redirect' ) {
-        $header{location} = $query->self_url if !$header{location};
-        $header{type} = q{} if !exists $header{type};
-    }
-
     my ( $attachment, $charset, $cookie, $expires, $p3p, $target, $type )
         = delete @header{qw/attachment charset cookie expires p3p target type/};
 
@@ -104,11 +99,11 @@ sub _as_arrayref {
 
     push @headers, map { ucfirst $_, $header{$_} } keys %header;
 
-    if ( !defined $type or $type ne q{} ) {
-        $charset = $query->charset unless defined $charset;
-        my $ct = $type || 'text/html';
-        $ct .= "; charset=$charset" if $charset && $ct !~ /\bcharset\b/;
-        push @headers, 'Content-Type', $ct;
+    unless ( defined $type and $type eq q{} ) {
+        my $value = $type || 'text/html';
+        $charset = $query->charset if !defined $charset;
+        $value .= "; charset=$charset" if $charset && $value !~ /\bcharset\b/;
+        push @headers, 'Content-Type', $value;
     }
 
     \@headers;

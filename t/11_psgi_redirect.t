@@ -25,7 +25,6 @@ $env->{REQUEST_URI}     = "$env->{SCRIPT_NAME}$env->{PATH_INFO}?$env->{QUERY_STR
 $env->{HTTP_LOVE}       = 'true';
 
 my $header = CGI::Header::PSGI->new(
-    handler => 'redirect',
     query => CGI::PSGI->new($env),
 );
 
@@ -33,13 +32,13 @@ my $header = CGI::Header::PSGI->new(
 # These first tree tests are ported from CGI.pm's 'function.t'
 {
     my $test = 'psgi_redirect($url)';
-    $header->clear->location('http://somewhere.else');
+    $header->clear->redirect('http://somewhere.else')->type(q{});
     is($header->status_code, 302, "$test - default status");
     is_deeply $header->as_arrayref, [ 'Location' => 'http://somewhere.else' ], "$test - headers array";  
 }
 {
     my $test = 'psgi_redirect() with content type';
-    $header->clear->location('http://somewhere.else')->type('text/html');
+    $header->clear->redirect('http://somewhere.else')->type('text/html');
     is($header->status_code, 302, "$test - status");
     is_deeply $header->as_arrayref, [
         'Location' => 'http://somewhere.else',
@@ -48,7 +47,7 @@ my $header = CGI::Header::PSGI->new(
 }
 {
     my $test = "psgi_redirect() with path and query string"; 
-    $header->clear->location('http://somewhere.else/bin/foo&bar')->type('text/html');
+    $header->clear->redirect('http://somewhere.else/bin/foo&bar')->type('text/html');
     is($header->status_code, 302, "$test - status");
     is_deeply $header->as_arrayref, [
         'Location' => 'http://somewhere.else/bin/foo&bar',
