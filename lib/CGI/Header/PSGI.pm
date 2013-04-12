@@ -73,8 +73,8 @@ sub _as_arrayref {
 
     my @headers;
 
-    my ( $attachment, $charset, $cookie, $expires, $p3p, $target, $type )
-        = delete @header{qw/attachment charset cookie expires p3p target type/};
+    my ( $attachment, $charset, $cookies, $expires, $p3p, $target, $type )
+        = delete @header{qw/attachment charset cookies expires p3p target type/};
 
     push @headers, 'Server', $query->server_software if $nph;
     push @headers, 'Window-Target', $target if $target;
@@ -84,7 +84,7 @@ sub _as_arrayref {
         push @headers, 'P3P', qq{policyref="/w3c/p3p.xml", CP="$tags"};
     }
 
-    my @cookies = ref $cookie eq 'ARRAY' ? @{$cookie} : $cookie;
+    my @cookies = ref $cookies eq 'ARRAY' ? @{$cookies} : $cookies;
        @cookies = map { $self->_bake_cookie($_) || () } @cookies;
 
     push @headers, map { ('Set-Cookie', $_) } @cookies;
