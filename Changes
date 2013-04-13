@@ -1,5 +1,9 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
+  [BUG FIX]
+
+    - Rename "cookie" to "cookies" in _as_arrayref()
+
 0.11  Apr 12th, 2013
 
   - Requires CGI::Header 0.47 or higher

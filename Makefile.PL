@@ -10,6 +10,7 @@ requires 'parent';
 
 test_requires 'Test::More' => '0.98';
 test_requires 'Test::Pod'  => '1.45';
+test_requires 'Test::MockTime';
 test_requires 'CGI::PSGI'  => '0.15';
 
 tests 't/*.t xt/*.t';

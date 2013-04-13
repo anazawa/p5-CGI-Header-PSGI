@@ -137,12 +137,14 @@ CGI::Header::PSGI - Generate PSGI-compatible response header arrayref
       my $query  = CGI::PSGI->new( $env );
       my $header = CGI::Header::PSGI->new( query => $query );
         
-      # run CGI.pm-based application
+      my $body = do {
+          # run CGI.pm-based application
+      };
 
       return [
           $header->status_code,
           $header->as_arrayref,
-          [ "Hello, World" ]
+          [ $body ]
       ];
   };
 
@@ -156,7 +158,7 @@ This module can be used to convert CGI.pm-compatible HTTP header properties
 into PSGI response header array reference. 
 
 This module requires your query class is orthogonal to a global variable
-C<%ENV>. For example, C<CGI::PSGI> adds the C<env>
+C<%ENV>. For example, L<CGI::PSGI> adds the C<env>
 attribute to CGI.pm, and also overrides some methods which refer to C<%ENV>
 directly. This module doesn't solve those problems at all.
 
