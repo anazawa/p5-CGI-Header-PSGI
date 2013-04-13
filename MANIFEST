@@ -14,6 +14,7 @@ MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
-t/10_psgi_header.t
-t/11_psgi_redirect.t
+t/10_basic.t
+t/20_psgi_header.t
+t/21_psgi_redirect.t
 xt/pod.t
