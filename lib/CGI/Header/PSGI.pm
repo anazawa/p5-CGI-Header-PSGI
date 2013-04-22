@@ -5,12 +5,12 @@ use warnings;
 use parent 'CGI::Header';
 use Carp qw/croak/;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 sub new {
     my $class  = shift;
     my $self   = $class->SUPER::new( @_ );
-    my $header = $self->rehash->header;
+    my $header = $self->header;
 
     if ( exists $header->{status} ) {
         my $status = delete $header->{status};
