@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More 'no_plan';
+use Test::More skip_all => 'not compatible with psgi_header() anymore';
 use CGI::PSGI;
 use CGI::Header::PSGI;
 

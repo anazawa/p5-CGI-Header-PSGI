@@ -5,7 +5,7 @@ all_from 'lib/CGI/Header/PSGI.pm';
 repository 'https://github.com/anazawa/p5-CGI-Header-PSGI';
 
 requires 'Carp' => '1.10';
-requires 'CGI::Header' => '0.49';
+requires 'CGI::Header' => '0.51';
 requires 'parent';
 
 test_requires 'Test::More' => '0.98';

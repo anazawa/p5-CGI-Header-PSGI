@@ -11,7 +11,6 @@ set_fixed_time( 1341637509 );
 
 my $header = CGI::Header::PSGI->new(
     header => {
-        '-NPH'           => 1,
         '-Status'        => '304 Not Modified',
         '-Content_Type'  => 'text/plain',
         '-Charset'       => 'utf-8',
