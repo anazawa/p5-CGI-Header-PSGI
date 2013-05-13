@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use parent 'CGI::Header::Standalone';
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 sub new {
     my $class  = shift;
