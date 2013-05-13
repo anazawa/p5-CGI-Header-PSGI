@@ -8,8 +8,7 @@ use CGI::Header::PSGI;
 
 eval "use 5.008";
 plan skip_all => "$@" if $@;
-#plan tests => 6;
-plan skip_all => 'not compatible with psgi_redirect() anymore';
+plan tests => 6;
 #plan 'no_plan';
 
 # Set up a CGI environment

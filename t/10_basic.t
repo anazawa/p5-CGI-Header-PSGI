@@ -26,7 +26,6 @@ my $header = CGI::Header::PSGI->new(
 is $header->status_code, 304;
 
 is_deeply $header->as_arrayref, [
-    'Server',              'Apache/1.3.27 (Unix)',
     'Window-Target',       'ResultsWindow',
     'P3P',                 'policyref="/w3c/p3p.xml", CP="CAO DSP LAW CURa"',
     'Set-Cookie',          'ID=123456; path=/',

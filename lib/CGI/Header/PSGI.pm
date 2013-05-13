@@ -35,7 +35,7 @@ sub status_code {
 
 sub as_arrayref {
     my $self    = shift;
-    my $headers = $self->clone->nph(1)->_finalize->{headers};
+    my $headers = $self->_finalize->{headers};
 
     my @headers;
     for ( my $i = 0; $i < @$headers; $i += 2 ) {
