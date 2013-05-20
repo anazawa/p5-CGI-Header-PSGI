@@ -92,7 +92,7 @@ sub _date {
 
 sub finalize {
     my $self    = shift;
-    my $code    = $self->status_code;
+    my $status  = $self->status_code;
     my $headers = $self->as_arrayref;
     my $crlf    = $self->_crlf;
 
@@ -116,7 +116,7 @@ sub finalize {
         push @headers, $field, $value;
     }
 
-    $code, \@headers;
+    $status, \@headers;
 }
 
 sub _crlf {
@@ -159,7 +159,7 @@ This document refers to CGI::Header::PSGI 0.14.
 =head1 DESCRIPTION
 
 This module can be used to convert CGI.pm-compatible HTTP header properties
-into PSGI response header array reference. 
+into L<PSGI> response header array reference. 
 
 This module requires your query class is orthogonal to a global variable
 C<%ENV>. For example, L<CGI::PSGI> adds the C<env>
@@ -168,7 +168,9 @@ directly. This module doesn't solve those problems at all.
 
 =head2 METHODS
 
-This class adds the following methods to L<CGI::Header>:
+This class inherits all methods from L<CGI::Header>.
+
+Adds the following methods to the superclass:
 
 =over 4
 
@@ -176,9 +178,19 @@ This class adds the following methods to L<CGI::Header>:
 
 Returns HTTP status code.
 
-=item $header->as_arrayref
+=item $headers = $header->as_arrayref
 
 Returns PSGI response header array reference.
+
+=back
+
+Overrides the following method of the superclass:
+
+=over 4
+
+=item ($status_code, $headers) = $header->finalize
+
+Return the status code and PSGI header array reference of this response.
 
 =back
 

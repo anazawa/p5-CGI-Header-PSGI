@@ -1,6 +1,7 @@
 use inc::Module::Install;
 
 all_from 'lib/CGI/Header/PSGI.pm';
+readme_from 'lib/CGI/Header/PSGI.pm';
 
 repository 'https://github.com/anazawa/p5-CGI-Header-PSGI';
 

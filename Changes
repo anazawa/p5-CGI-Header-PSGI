@@ -1,5 +1,8 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
+  - Requires CGI::Header 0.54 or higher
+  - Overrides finalize() method of the superclass
+
 0.14  May 14th, 2013
 
   - Requires CGI::Header 0.51 or higher
