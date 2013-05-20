@@ -27,24 +27,24 @@ $env->{HTTP_LOVE}       = 'true';
 
 my $header = CGI::Header::PSGI->new( query => CGI::PSGI->new($env) );
 
-my $headers = $header->type('text/html')->as_arrayref;
-is $header->status_code, 200;
+my ($status, $headers) = $header->type('text/html')->finalize;
+is $status, 200;
 is_deeply $headers, [ 'Content-Type' => 'text/html; charset=ISO-8859-1' ],
     'known header, basic case: type => "text/html"';
 
 $header->clear;
-eval { $header->type("text/html".$CGI::CRLF."evil: stuff")->as_arrayref };
+eval { $header->type("text/html".$CGI::CRLF."evil: stuff")->finalize };
 like($@,qr/contains a newline/,'invalid header blows up');
 
 $header->clear;
-$headers = $header->type("text/html".$CGI::CRLF." evil: stuff ")->as_arrayref;
+($status, $headers) = $header->type("text/html".$CGI::CRLF." evil: stuff ")->finalize;
 like $headers->[1],
     qr#text/html evil: stuff#, 'known header, with leading and trailing whitespace on the continuation line';
 
 $header->clear->set( foobar => "text/html".$CGI::CRLF."evil: stuff" );
-eval {  $header->as_arrayref };
+eval {  $header->finalize };
 like($@,qr/contains a newline/,'unknown header with CRLF embedded blows up');
 
 $header->clear->set( foobar => "\nContent-type: evil/header" );
-eval { $header->as_arrayref };
+eval { $header->finalize };
 like($@,qr/contains a newline/,'header with leading newline blows up');

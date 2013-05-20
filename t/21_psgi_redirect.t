@@ -32,15 +32,16 @@ my $header = CGI::Header::PSGI->new(
 # These first tree tests are ported from CGI.pm's 'function.t'
 {
     my $test = 'psgi_redirect($url)';
-    $header->clear->redirect('http://somewhere.else')->type(q{});
-    is($header->status_code, 302, "$test - default status");
-    is_deeply $header->as_arrayref, [ 'Location' => 'http://somewhere.else' ], "$test - headers array";  
+    my ($status, $headers) = $header->clear->redirect('http://somewhere.else')->type(q{})->finalize;
+    is($status, 302, "$test - default status");
+    is_deeply $headers, [ 'Location' => 'http://somewhere.else' ], "$test - headers array";  
 }
 {
     my $test = 'psgi_redirect() with content type';
     $header->clear->redirect('http://somewhere.else')->type('text/html');
-    is($header->status_code, 302, "$test - status");
-    is_deeply $header->as_arrayref, [
+    my ($status, $headers) = $header->finalize;
+    is($status, 302, "$test - status");
+    is_deeply $headers, [
         'Location' => 'http://somewhere.else',
         'Content-Type' => 'text/html; charset=ISO-8859-1',
     ], "$test - headers array";  
@@ -48,8 +49,9 @@ my $header = CGI::Header::PSGI->new(
 {
     my $test = "psgi_redirect() with path and query string"; 
     $header->clear->redirect('http://somewhere.else/bin/foo&bar')->type('text/html');
-    is($header->status_code, 302, "$test - status");
-    is_deeply $header->as_arrayref, [
+    my ($status, $headers) = $header->finalize;
+    is($status, 302, "$test - status");
+    is_deeply $headers, [
         'Location' => 'http://somewhere.else/bin/foo&bar',
         'Content-Type' => 'text/html; charset=ISO-8859-1',
     ], "$test - headers array";  
