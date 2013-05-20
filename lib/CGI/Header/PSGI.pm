@@ -5,7 +5,7 @@ use warnings;
 use parent 'CGI::Header';
 use Carp qw/croak/;
 
-our $VERSION = '0.14';
+our $VERSION = '0.54001';
 
 sub new {
     my $class  = shift;
