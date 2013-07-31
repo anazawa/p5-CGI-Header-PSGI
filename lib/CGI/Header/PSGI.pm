@@ -2,21 +2,16 @@ package CGI::Header::PSGI;
 use 5.008_009;
 use strict;
 use warnings;
-use parent 'CGI::Header';
+use parent 'CGI::Header::Adapter';
 use Carp qw/croak/;
 
 our $VERSION = '0.54001';
 
 sub new {
-    my $class  = shift;
-    my $self   = $class->SUPER::new( @_ );
-    my $header = $self->header;
-
-    if ( exists $header->{status} ) {
-        my $status = delete $header->{status};
-        $self->{status} = $status if !exists $self->{status};
-    }
-
+    my $class = shift;
+    my $self = $class->SUPER::new( @_ );
+    my $status = $self->delete('Status');
+    $self->status($status) if $status and !$self->has_status;
     $self;
 }
 
@@ -27,100 +22,27 @@ sub status {
     $self;
 }
 
+sub has_status {
+    exists $_[0]->{status};
+}
+
 sub status_code {
     my $self = shift;
-    my $code = $self->{status} || '200';
+    my $code = $self->has_status ? $self->status : '200';
     $code =~ s/\D*$//;
     $code;
-}
-
-sub as_arrayref {
-    my $self   = shift;
-    my $query  = $self->query;
-    my %header = %{ $self->header };
-    my $nph    = delete $header{nph} || $query->nph;
-
-    my ( $attachment, $charset, $cookies, $expires, $p3p, $status, $target, $type )
-        = delete @header{qw/attachment charset cookies expires p3p status target type/};
-
-    my @headers;
-
-    push @headers, 'Server', $query->server_software if $nph;
-    push @headers, 'Status', $status if $status;
-    push @headers, 'Window-Target', $target if $target;
-
-    if ( $p3p ) {
-        my $tags = ref $p3p eq 'ARRAY' ? join ' ', @{$p3p} : $p3p;
-        push @headers, 'P3P', qq{policyref="/w3c/p3p.xml", CP="$tags"};
-    }
-
-    my @cookies = ref $cookies eq 'ARRAY' ? @{$cookies} : $cookies;
-       @cookies = map { $self->_bake_cookie($_) || () } @cookies;
-
-    push @headers, map { ('Set-Cookie', $_) } @cookies;
-    push @headers, 'Expires', $self->_date($expires) if $expires;
-    push @headers, 'Date', $self->_date if $expires or @cookies or $nph;
-    push @headers, 'Pragma', 'no-cache' if $query->cache;
-
-    if ( $attachment ) {
-        my $value = qq{attachment; filename="$attachment"};
-        push @headers, 'Content-Disposition', $value;
-    }
-
-    push @headers, map { ucfirst $_, $header{$_} } keys %header;
-
-    unless ( defined $type and $type eq q{} ) {
-        my $value = $type || 'text/html';
-        $charset = $query->charset if !defined $charset;
-        $value .= "; charset=$charset" if $charset && $value !~ /\bcharset\b/;
-        push @headers, 'Content-Type', $value;
-    }
-
-    \@headers;
-}
-
-
-sub _bake_cookie {
-    my ( $self, $cookie ) = @_;
-    ref $cookie eq 'CGI::Cookie' ? $cookie->as_string : $cookie;
-}
-
-sub _date {
-    my ( $self, $expires ) = @_;
-    CGI::Util::expires( $expires, 'http' );
 }
 
 sub finalize {
     my $self    = shift;
     my $status  = $self->status_code;
     my $headers = $self->as_arrayref;
-    my $crlf    = $self->_crlf;
 
-    my @headers;
-    for ( my $i = 0; $i < @$headers; $i += 2 ) {
-        my $field = $headers->[$i];
-        my $value = $headers->[$i+1];
-
-        # CR escaping for values, per RFC 822:
-        # > Unfolding is accomplished by regarding CRLF immediately
-        # > followed by a LWSP-char as equivalent to the LWSP-char.
-        $value =~ s/$crlf(\s)/$1/g;
-
-        # All other uses of newlines are invalid input.
-        if ( $value =~ /$crlf|\015|\012/ ) {
-            # shorten very long values in the diagnostic
-            $value = substr($value, 0, 72) . '...' if length $value > 72;
-            croak "Invalid header value contains a newline not followed by whitespace: $value";
-        }
-
-        push @headers, $field, $value;
+    for ( my $i = 1; $i < @$headers; $i += 2 ) {
+        $headers->[$i] = $self->process_newline( $headers->[$i] );
     }
 
-    $status, \@headers;
-}
-
-sub _crlf {
-    $CGI::CRLF;
+    $status, $headers;
 }
 
 1;
@@ -146,15 +68,14 @@ CGI::Header::PSGI - Generate PSGI-compatible response header arrayref
       };
 
       return [
-          $header->status_code,
-          $header->as_arrayref,
+          $header->finalize,
           [ $body ]
       ];
   };
 
 =head1 VERSION
 
-This document refers to CGI::Header::PSGI 0.14.
+This document refers to CGI::Header::PSGI 0.54001.
 
 =head1 DESCRIPTION
 
@@ -168,7 +89,7 @@ directly. This module doesn't solve those problems at all.
 
 =head2 METHODS
 
-This class inherits all methods from L<CGI::Header>.
+This class inherits all methods from L<CGI::Header::Adapter>.
 
 Adds the following methods to the superclass:
 
@@ -178,9 +99,7 @@ Adds the following methods to the superclass:
 
 Returns HTTP status code.
 
-=item $headers = $header->as_arrayref
-
-Returns PSGI response header array reference.
+  my $code = $header->status_code; # => 200
 
 =back
 
@@ -190,7 +109,14 @@ Overrides the following method of the superclass:
 
 =item ($status_code, $headers) = $header->finalize
 
+Behaves like C<CGI::PSGI>'s C<psgi_header> method.
 Return the status code and PSGI header array reference of this response.
+
+  $header->finalize;
+  # => (
+  #     200,
+  #     [ 'Content-Type' => 'text/plain' ]
+  # )
 
 =back
 

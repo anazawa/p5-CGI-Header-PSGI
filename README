@@ -22,7 +22,7 @@ SYNOPSIS
       };
 
 VERSION
-    This document refers to CGI::Header::PSGI 0.14.
+    This document refers to CGI::Header::PSGI 0.54001.
 
 DESCRIPTION
     This module can be used to convert CGI.pm-compatible HTTP header
