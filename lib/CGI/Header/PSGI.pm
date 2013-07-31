@@ -5,7 +5,7 @@ use warnings;
 use parent 'CGI::Header::Adapter';
 use Carp qw/croak/;
 
-our $VERSION = '0.54001';
+our $VERSION = '0.62001';
 
 sub status {
     my $self = shift;
