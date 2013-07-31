@@ -1,16 +1,18 @@
 use strict;
 use warnings;
 use CGI::Header::PSGI;
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 my $header = CGI::Header::PSGI->new(
     header => {
-        '-Status'       => '404 Not Found',
         '-Content_Type' => 'text/plain',
     },
 );
 
+
 can_ok $header, qw( has_status status_code );
+
+is $header->status('404 Not Found'), $header;
 
 my ( $status, $headers ) = $header->finalize;
 

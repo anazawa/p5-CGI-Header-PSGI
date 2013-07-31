@@ -1,6 +1,7 @@
 Revision history for Perl extension CGI::Header::PSGI.
 
-  - Requires CGI::Header 0.55 or higher
+  - Requires CGI::Header 0.62 or higher
+  - Does not override #new anymore
 
 0.54001  May 20th, 2013
 

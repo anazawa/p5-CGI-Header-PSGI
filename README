@@ -15,8 +15,7 @@ SYNOPSIS
           };
 
           return [
-              $header->status_code,
-              $header->as_arrayref,
+              $header->finalize,
               [ $body ]
           ];
       };
@@ -34,21 +33,26 @@ DESCRIPTION
     doesn't solve those problems at all.
 
   METHODS
-    This class inherits all methods from CGI::Header.
+    This class inherits all methods from CGI::Header::Adapter.
 
     Adds the following methods to the superclass:
 
     $header->status_code
         Returns HTTP status code.
 
-    $headers = $header->as_arrayref
-        Returns PSGI response header array reference.
+          my $code = $header->status_code; # => 200
 
     Overrides the following method of the superclass:
 
     ($status_code, $headers) = $header->finalize
-        Return the status code and PSGI header array reference of this
-        response.
+        Behaves like "CGI::PSGI"'s "psgi_header" method. Return the status
+        code and PSGI header array reference of this response.
+
+          $header->finalize;
+          # => (
+          #     200,
+          #     [ 'Content-Type' => 'text/plain' ]
+          # )
 
 SEE ALSO
     CGI::Emulate::PSGI

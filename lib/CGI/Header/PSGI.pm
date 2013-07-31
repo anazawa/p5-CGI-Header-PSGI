@@ -7,14 +7,6 @@ use Carp qw/croak/;
 
 our $VERSION = '0.54001';
 
-sub new {
-    my $class = shift;
-    my $self = $class->SUPER::new( @_ );
-    my $status = $self->delete('Status');
-    $self->status($status) if $status and !$self->has_status;
-    $self;
-}
-
 sub status {
     my $self = shift;
     return $self->{status} unless @_;
